@@ -80,7 +80,7 @@ if st.button("➕ Tambah Tugas"):
 
     data = {
         "nama": nama,
-        "tugas": pelajaran,
+        "pelajaran": pelajaran,
         "deadline": str(deadline),
         "kesulitan": kesulitan,
         "prioritas": prioritas
