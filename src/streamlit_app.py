@@ -64,27 +64,33 @@ else:
 # --- Form Input ---
 with st.container():
     st.header("🧠 Tambah Tugas Baru")
-    nama = st.text_input("Nama Tugas", placeholder="Contoh: PR Matematika Bab 3")
-    pelajaran = st.text_input("Mata Pelajaran", placeholder="Contoh: Matematika")
+    nama = st.text_input("Nama Tugas", placeholder="Contoh: PR Matematika Bab 3 atau Menjemput Barang")
+    pelajaran = st.text_input("Mata Pelajaran", placeholder="Contoh: Matematika atau Hari senin mengambil barang")
     deadline = st.date_input("Deadline")
     kesulitan = st.selectbox("Tingkat Kesulitan", ["Rendah", "Sedang", "Tinggi"])
 
-    if st.button("➕ Tambah Tugas"):
-        sisa_hari = (deadline - datetime.today().date()).days
+if st.button("➕ Tambah Tugas"):
+    sisa_hari = (deadline - datetime.today().date()).days
+    if sisa_hari <= 2 or kesulitan == "Tinggi":
+        prioritas = "Tinggi"
+    elif sisa_hari <= 3:
+        prioritas = "Sedang"
+    else:
+        prioritas = "Rendah"
 
-        # Hitung prioritas
-        if sisa_hari <= 1 or kesulitan == "Tinggi":
-            prioritas = "Tinggi"
-        elif sisa_hari <= 3:
-            prioritas = "Sedang"
-        else:
-            prioritas = "Rendah"
+    data = {
+        "nama": nama,
+        "pelajaran": pelajaran,
+        "deadline": str(deadline),
+        "kesulitan": kesulitan,
+        "prioritas": prioritas
+    }
+    supabase.table("tasks").insert(data).execute()
+    st.success("✅ Tugas berhasil disimpan!")
 
-        new_data = pd.DataFrame([[nama, pelajaran, deadline, kesulitan, prioritas]],
-                                columns=["Nama", "Pelajaran", "Deadline", "Kesulitan", "Prioritas"])
-        df = pd.concat([df, new_data], ignore_index=True)
-        df.to_csv(file_path, index=False)
-        st.success("✅ Tugas berhasil ditambahkan!")
+# Ambil semua data
+tasks = supabase.table("tasks").select("*").execute().data
+st.dataframe(tasks)
 
 st.markdown("---")
 
