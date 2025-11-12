@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+from supabase import create_client, Client
+
+SUPABASE_URL = "https://ojwwyymjmeneoqlvgbes.supabase.co"   # Ganti dengan URL kamu
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3d5eW1qbWVuZW9xbHZnYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NjI5MzUsImV4cCI6MjA3ODUzODkzNX0.-6tdIlFBLrQe-8tcN2smNpscKdh4AAHtszc4rB0rV_k"                        # Ganti dengan Anon key kamu
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 # --- Konfigurasi Halaman ---
 st.set_page_config(
