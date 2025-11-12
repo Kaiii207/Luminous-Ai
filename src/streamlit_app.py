@@ -104,6 +104,8 @@ else:
 
 # --- Tombol Hapus Semua ---
 if st.button("🗑️ Hapus Semua Tugas"):
-    df = pd.DataFrame(columns=["Nama", "Pelajaran", "Deadline", "Kesulitan", "Prioritas"])
-    df.to_csv(file_path, index=False)
-    st.warning("Semua tugas berhasil dihapus.")
+    try:
+        supabase.table("tasks").delete().neq("id", 0).execute()
+        st.success("Semua tugas berhasil dihapus.")
+    except Exception as e:
+        st.error(f"Gagal menghapus tugas: {e}")
