@@ -94,21 +94,21 @@ st.dataframe(tasks)
 
 st.markdown("---")
 
-# --- Tabel Daftar Tugas ---
-st.header("📋 Daftar Tugas Kamu")
+# Ambil data dari Supabase
+response = supabase.table("tasks").select("*").execute()
+tasks = response.data
 
-if not df.empty:
-    st.dataframe(df, use_container_width=True)
+# Tampilkan data jika ada
+if tasks and len(tasks) > 0:
+    st.subheader("📋 Daftar Tugas Kamu")
+    st.table(tasks)
 else:
-    st.info("Belum ada tugas yang ditambahkan.")
+    st.info("Belum ada tugas yang ditambahkan!")
 
-# --- Tombol Hapus Semua ---
 if st.button("🗑️ Hapus Semua Tugas"):
-    try:
-        response = supabase.table("tasks").delete().gt("id", 0).execute()
-        if response.data:
-            st.success("🗑️ Semua tugas berhasil dihapus dari database!")
-        else:
-            st.info("Tidak ada tugas yang perlu dihapus.")
-    except Exception as e:
-        st.error(f"Gagal menghapus tugas: {e}")
+    if tasks and len(tasks) > 0:
+        supabase.table("tasks").delete().neq("id", 0).execute()
+        st.success("Semua tugas berhasil dihapus.")
+        st.rerun()
+    else:
+        st.info("Tidak ada tugas yang perlu dihapus.")
