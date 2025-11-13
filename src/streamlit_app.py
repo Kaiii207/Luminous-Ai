@@ -105,7 +105,10 @@ else:
 # --- Tombol Hapus Semua ---
 if st.button("🗑️ Hapus Semua Tugas"):
     try:
-        supabase.table("tasks").delete().neq("id", 0).execute()
-        st.success("Semua tugas berhasil dihapus.")
+        response = supabase.table("tasks").delete().gt("id", 0).execute()
+        if response.data:
+            st.success("🗑️ Semua tugas berhasil dihapus dari database!")
+        else:
+            st.info("Tidak ada tugas yang perlu dihapus.")
     except Exception as e:
         st.error(f"Gagal menghapus tugas: {e}")
