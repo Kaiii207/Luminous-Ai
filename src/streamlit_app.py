@@ -4,111 +4,126 @@ from datetime import datetime
 import os
 from supabase import create_client, Client
 
-SUPABASE_URL = "https://ojwwyymjmeneoqlvgbes.supabase.co"   # Ganti dengan URL kamu
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3d5eW1qbWVuZW9xbHZnYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NjI5MzUsImV4cCI6MjA3ODUzODkzNX0.-6tdIlFBLrQe-8tcN2smNpscKdh4AAHtszc4rB0rV_k"                        # Ganti dengan Anon key kamu
+# --- Konfigurasi Supabase ---
+SUPABASE_URL = "https://<YOUR_PROJECT>.supabase.co"   # ganti dengan URL dari Supabase Settings > API
+SUPABASE_KEY = "<YOUR_ANON_KEY>"                      # ganti dengan anon public key dari Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 
 # --- Konfigurasi Halaman ---
 st.set_page_config(
     page_title="Luminous AI – Pengingat Tugas",
-    page_icon="moon.png",
+    page_icon="🌙",
     layout="centered"
 )
 
-# --- Gaya CSS Kustom ---
+# --- CSS ---
 st.markdown("""
-    <style>
-    body {
-        background-color: #f5f7fa;
-    }
-    .main {
-        background-color: #ffffff;
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
-    }
-    .stButton>button {
-        background-color: #4F46E5;
-        color: white;
-        border-radius: 10px;
-        height: 3em;
-        width: 100%;
-        font-weight: bold;
-        border: none;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background-color: #4338CA;
-        transform: scale(1.02);
-    }
-    h1, h2, h3, h4 {
-        color: #1e1e2f;
-        text-align: center;
-    }
-    </style>
+<style>
+body {background-color: #f5f7fa;}
+.main {background-color: #ffffff; padding: 30px; border-radius: 20px;
+box-shadow: 0px 4px 15px rgba(0,0,0,0.1);}
+.stButton>button {background-color: #4F46E5; color: white; border-radius: 10px;
+height: 3em; width: 100%; font-weight: bold; border: none; transition: 0.3s;}
+.stButton>button:hover {background-color: #4338CA; transform: scale(1.02);}
+h1, h2, h3, h4 {color: #1e1e2f; text-align: center;}
+</style>
 """, unsafe_allow_html=True)
 
-# --- Judul Aplikasi ---
-st.title("🤖 Luminous AI – Pengingat Tugas")
-st.write("✨ Kelola dan pantau semua tugasmu dengan bantuan AI yang cerdas dan rapi!")
+# --- Login Section ---
+st.title("🔐 Luminous AI – Login / Register")
 
-# --- File Penyimpanan ---
-file_path = "data_tugas.csv"
+if "user" not in st.session_state:
+    st.session_state["user"] = None
 
-if os.path.exists(file_path):
-    df = pd.read_csv(file_path)
-else:
-    df = pd.DataFrame(columns=["Nama", "Pelajaran", "Deadline", "Kesulitan", "Prioritas"])
+if st.session_state["user"] is None:
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-# --- Form Input ---
-with st.container():
-    st.header("🧠 Tambah Tugas Baru")
-    nama = st.text_input("Nama Tugas", placeholder="Contoh: PR Matematika Bab 3 atau Menjemput Barang")
-    pelajaran = st.text_input("Mata Pelajaran", placeholder="Contoh: Matematika atau Hari senin mengambil barang")
-    deadline = st.date_input("Deadline")
-    kesulitan = st.selectbox("Tingkat Kesulitan", ["Rendah", "Sedang", "Tinggi"])
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Login"):
+            try:
+                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state["user"] = user.user
+                st.success(f"Berhasil login sebagai {email}")
+                st.rerun()
+            except Exception as e:
+                st.error("Login gagal. Periksa email atau password.")
+    with col2:
+        if st.button("Daftar Akun"):
+            try:
+                supabase.auth.sign_up({"email": email, "password": password})
+                st.success("Akun berhasil dibuat! Silakan login.")
+            except Exception as e:
+                st.error(f"Gagal daftar: {e}")
 
+    st.stop()
+
+# --- Tombol Logout ---
+if st.button("Logout"):
+    st.session_state["user"] = None
+    st.success("Berhasil logout.")
+    st.rerun()
+
+st.markdown("---")
+st.header("🧠 Tambah Tugas Baru")
+
+# --- Input Form ---
+nama = st.text_input("Nama Tugas", placeholder="Contoh: PR Matematika Bab 3")
+pelajaran = st.text_input("Mata Pelajaran", placeholder="Contoh: Matematika")
+deadline = st.date_input("Deadline")
+kesulitan = st.selectbox("Tingkat Kesulitan", ["Rendah", "Sedang", "Tinggi"])
+
+# --- Tambah Tugas ---
 if st.button("➕ Tambah Tugas"):
-    sisa_hari = (deadline - datetime.today().date()).days
-    if sisa_hari <= 2 or kesulitan == "Tinggi":
-        prioritas = "Tinggi"
-    elif sisa_hari <= 3:
-        prioritas = "Sedang"
-    else:
-        prioritas = "Rendah"
+    try:
+        sisa_hari = (deadline - datetime.today().date()).days
+        if sisa_hari <= 1 or kesulitan == "Tinggi":
+            prioritas = "Tinggi"
+        elif sisa_hari <= 3:
+            prioritas = "Sedang"
+        else:
+            prioritas = "Rendah"
 
-    data = {
-        "nama": nama,
-        "pelajaran": pelajaran,
-        "deadline": str(deadline),
-        "kesulitan": kesulitan,
-        "prioritas": prioritas
-    }
-    supabase.table("tasks").insert(data).execute()
-    st.success("✅ Tugas berhasil disimpan!")
+        data = {
+            "user_id": st.session_state["user"].id,
+            "nama": nama,
+            "pelajaran": pelajaran,
+            "deadline": str(deadline),
+            "kesulitan": kesulitan,
+            "prioritas": prioritas
+        }
 
-# Ambil semua data
-tasks = supabase.table("tasks").select("*").execute().data
-st.dataframe(tasks)
+        supabase.table("tasks").insert(data).execute()
+        st.success("✅ Tugas berhasil disimpan!")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Gagal menambah tugas: {e}")
 
 st.markdown("---")
 
-# Ambil data dari Supabase
-response = supabase.table("tasks").select("*").execute()
-tasks = response.data
+# --- Tampilkan Daftar Tugas ---
+st.header("📋 Daftar Tugas Kamu")
 
-# Tampilkan data jika ada
-if tasks and len(tasks) > 0:
-    st.subheader("📋 Daftar Tugas Kamu")
-    st.table(tasks)
-else:
-    st.info("Belum ada tugas yang ditambahkan!")
+try:
+    user_id = st.session_state["user"].id
+    response = supabase.table("tasks").select("*").eq("user_id", user_id).execute()
+    tasks = response.data
 
-if st.button("🗑️ Hapus Semua Tugas"):
     if tasks and len(tasks) > 0:
-        supabase.table("tasks").delete().neq("id", 0).execute()
-        st.success("Semua tugas berhasil dihapus.")
-        st.rerun()
+        df = pd.DataFrame(tasks)
+        st.table(df[["nama", "pelajaran", "deadline", "kesulitan", "prioritas"]])
     else:
-        st.info("Tidak ada tugas yang perlu dihapus.")
+        st.info("Belum ada tugas yang ditambahkan.")
+except Exception as e:
+    st.error(f"Gagal mengambil data tugas: {e}")
+
+# --- Tombol Hapus Semua ---
+if st.button("🗑️ Hapus Semua Tugas"):
+    try:
+        user_id = st.session_state["user"].id
+        supabase.table("tasks").delete().eq("user_id", user_id).execute()
+        st.warning("Semua tugas kamu telah dihapus.")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Gagal menghapus tugas: {e}")
