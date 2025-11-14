@@ -53,7 +53,7 @@ if st.session_state["user"] is None:
     # LOGIN DENGAN GOOGLE
     # -----------------------
     if st.button("🔵 Login dengan Google"):
-        redirect_url = "https://YOUR-HUGGINGFACE-SPACE.hf.space"   # GANTI!
+        redirect_url = "https://huggingface.co/spaces/Kaii207/Luminous-Ai"   # GANTI!
         
         res = supabase.auth.sign_in_with_oauth({
             "provider": "google",
