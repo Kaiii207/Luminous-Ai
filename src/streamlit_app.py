@@ -6,8 +6,8 @@ from supabase import create_client, Client
 # -------------------------------
 # KONFIGURASI SUPABASE
 # -------------------------------
-SUPABASE_URL = "https://ojwwyymjmeneoqlvgbes.supabase.co"     # Ambil dari HuggingFace Secrets
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3d5eW1qbWVuZW9xbHZnYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NjI5MzUsImV4cCI6MjA3ODUzODkzNX0.-6tdIlFBLrQe-8tcN2smNpscKdh4AAHtszc4rB0rV_k"     # Ambil dari HuggingFace Secrets
+SUPABASE_URL = "https://ojwwyymjmeneoqlvgbes.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3d5eW1qbWVuZW9xbHZnYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NjI5MzUsImV4cCI6MjA3ODUzODkzNX0.-6tdIlFBLrQe-8tcN2smNpscKdh4AAHtszc4rB0rV_k"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -36,83 +36,9 @@ h1, h2, h3 {text-align: center;}
 """, unsafe_allow_html=True)
 
 # -------------------------------
-# CHECK SESSION USER
-# -------------------------------
-if "user" not in st.session_state:
-    st.session_state["user"] = None
-
-# -------------------------------
-# LOGIN PAGE
-# -------------------------------
-if st.session_state["user"] is None:
-
-    st.title("🔐 Luminous AI – Login / Register")
-    st.markdown("### Login Cepat")
-
-    # -----------------------
-    # LOGIN DENGAN GOOGLE
-    # -----------------------
-    if st.button("🔵 Login dengan Google"):
-        redirect_to = "https://kaii207-luminous-ai.hf.space"   # GANTI!
-        
-        res = supabase.auth.sign_in_with_oauth({
-    "provider": "google",
-    "options": {
-        "redirect_to": redirect_to
-    }
-})
-
-        # Tampilkan link login Google
-        st.markdown(f"[Klik untuk login Google]({res.url})")
-        st.stop()
-
-    st.markdown("---")
-    st.markdown("### Login atau Daftar Manual")
-
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    col1, col2 = st.columns(2)
-
-    # -----------------------
-    # LOGIN EMAIL
-    # -----------------------
-    with col1:
-        if st.button("Login"):
-            try:
-                user = supabase.auth.sign_in_with_password(
-                    {"email": email, "password": password}
-                )
-                st.session_state["user"] = user.user
-                st.success("Yay! Berhasil login!")
-                st.rerun()
-            except:
-                st.error("Email Kamu atau Password Kamu Salah, Check Lagi Ya!.")
-
-    # -----------------------
-    # REGISTER EMAIL
-    # -----------------------
-    with col2:
-        if st.button("Daftar"):
-            try:
-                supabase.auth.sign_up({"email": email, "password": password})
-                st.success("Horee! Akun berhasil dibuat! Silahkan login kak!.")
-            except:
-                st.error("Yahh Kasian! Gagal membuat akun. Email mungkin sudah terdaftar. Coba lagi ya.")
-
-    st.stop()
-
-# -------------------------------
-# DASHBOARD (SETELAH LOGIN)
+# DASHBOARD TANPA LOGIN
 # -------------------------------
 st.title("🌙 Luminous AI – Pengingat Tugas")
-st.success(f"Logged in sebagai: {st.session_state['user'].email}")
-
-# Logout
-if st.button("Logout"):
-    st.session_state["user"] = None
-    st.rerun()
-
 st.markdown("---")
 st.header("🧠 Tambah Tugas Baru")
 
@@ -128,7 +54,7 @@ kesulitan = st.selectbox("Tingkat Kesulitan", ["Mudah", "Normal", "Sulit"])
 # TAMBAH DATA KE SUPABASE
 # -------------------------------
 if st.button("➕ Tambahin Tugas Disini!"):
-
+    
     sisa_hari = (deadline - datetime.today().date()).days
 
     if sisa_hari <= 1 or kesulitan == "Sulit":
@@ -139,7 +65,6 @@ if st.button("➕ Tambahin Tugas Disini!"):
         prioritas = "Mudah"
 
     data = {
-        "user_id": st.session_state["user"].id,
         "nama": nama,
         "pelajaran": pelajaran,
         "deadline": str(deadline),
@@ -160,8 +85,7 @@ if st.button("➕ Tambahin Tugas Disini!"):
 st.markdown("---")
 st.header("📋 Daftar-Daftar Tugas Kamu")
 
-user_id = st.session_state["user"].id
-res = supabase.table("tasks").select("*").eq("user_id", user_id).execute()
+res = supabase.table("tasks").select("*").execute()
 tasks = res.data
 
 if tasks:
@@ -175,7 +99,7 @@ else:
 # -------------------------------
 if st.button("🗑️ Hapus Semua Tugasnya?"):
     try:
-        supabase.table("tasks").delete().eq("user_id", user_id).execute()
+        supabase.table("tasks").delete().neq("id", -1).execute()
         st.warning("Hore! Semua tugas telah dihapus.")
         st.rerun()
     except Exception as e:
