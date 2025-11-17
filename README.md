@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: Luminous Ai
 emoji: 🚀
@@ -18,3 +19,7 @@ Edit `/src/streamlit_app.py` to customize this app to your heart's desire. :hear
 
 If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
 forums](https://discuss.streamlit.io).
+=======
+# Luminous-Ai
+Reminder Task
+>>>>>>> 320f1cf505871936c4e557a8715e07e75307987a
