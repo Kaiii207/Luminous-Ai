@@ -95,3 +95,8 @@ if st.button("🗑️ Hapus Semua Tugas"):
     df = pd.DataFrame(columns=["Nama", "Pelajaran", "Deadline", "Kesulitan", "Prioritas"])
     df.to_csv(file_path, index=False)
     st.warning("Semua tugas berhasil dihapus.")
+    
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
